@@ -37,21 +37,28 @@ class PostRequest(ActionBase):
 
     def get_config_rows(self) -> list:
         self.url_entry = Adw.EntryRow(title=self.plugin_base.lm.get("actions.post.url.title"))
+        self.headers_entry = Adw.EntryRow(title=self.plugin_base.lm.get("actions.post.headers.title"))
         self.json_entry = Adw.EntryRow(title=self.plugin_base.lm.get("actions.post.json.title"))
 
         self.load_config_defaults()
 
         # Connect signals
         self.url_entry.connect("notify::text", self.on_url_changed)
+        self.headers_entry.connect("notify::text", self.on_headers_changed)
         self.json_entry.connect("notify::text", self.on_json_changed)
 
-        return [self.url_entry, self.json_entry]
+        return [self.url_entry, self.headers_entry, self.json_entry]
     
     def on_url_changed(self, entry, *args):
         settings = self.get_settings()
         settings["url"] = entry.get_text()
         self.set_settings(settings)
     
+    def on_headers_changed(self, entry, *args):
+        settings = self.get_settings()
+        settings["headers"] = entry.get_text()
+        self.set_settings(settings)
+
     def on_json_changed(self, entry, *args):
         settings = self.get_settings()
         settings["json"] = entry.get_text()
@@ -59,10 +66,12 @@ class PostRequest(ActionBase):
 
     def load_config_defaults(self):
         self.url_entry.set_text(self.get_settings().get("url", "")) # Does not accept None
+        self.headers_entry.set_text(self.get_settings().get("headers", "")) # Does not accept None
         self.json_entry.set_text(self.get_settings().get("json", "")) # Does not accept None
 
     def on_key_down(self):
         url = self.get_settings().get("url")
+        headers = self.get_settings().get("headers", {})
         json_dict = self.get_settings().get("json")
 
         if url in ["", None]:
@@ -70,7 +79,7 @@ class PostRequest(ActionBase):
 
         try:
             json_dict = json.loads(json_dict)
-            answer = requests.post(url=url, json=json_dict)
+            answer = requests.post(url=url, headers=json.loads(headers), json=json_dict)
         except Exception as e:
             log.error(e)
             self.show_error(duration=2)

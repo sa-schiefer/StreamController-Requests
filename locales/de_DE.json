@@ -1,5 +1,6 @@
 {
     "plugin.name": "Requests",
     "actions.post.url.title": "URL",
+    "actions.post.headers.title": "HEADERS",
     "actions.post.json.title": "JSON"
 }
